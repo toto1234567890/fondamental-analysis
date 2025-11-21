@@ -1,0 +1,34 @@
+Goals Rules - Software Engineering Philosophy
+
+CORE DEVELOPMENT PRINCIPLES
+
+Modular Single-Responsibility - Each component serves one clear purpose and can function independently
+Explicit Dependency Management - Dependencies must be visible, typed, and intentionally imported
+Structured Organization - Code follows predictable patterns for maintainability and team scalability
+ARCHITECTURE & DESIGN
+
+Interface-First Design - Define contracts clearly before implementation
+Pattern-Driven Solutions - Apply established patterns (Factory, Composition, etc.) where they add value
+Progressive Complexity - Start simple, add complexity only when justified
+EXECUTION & FLOW
+
+Logical Method Sequencing - Code reads like a story from setup to execution
+Clear Public/Private Boundaries - Internal implementation details are hidden and organized
+Predictable Error Handling - Critical failures stop execution, operational errors are managed gracefully
+OPERATIONAL EXCELLENCE
+
+Standardized Entry Points - Consistent interface for standalone execution
+Time-Aware Operations - UTC timezone for all temporal operations
+Clean Visual Separation - Clear demarcation between logical code sections
+PROJECT PHILOSOPHY
+
+Solo-Developer Efficiency - Simple, standard, maintainable without bureaucracy
+Micro-Service Ready - Components are self-contained and deployable
+Quality Through Consistency - Reliability comes from predictable patterns
+Pragmatic Validation - Double-check everything, accept correction when wrong
+IMPLEMENTATION GUIDELINES
+
+Just-Enough Structure - Organizational patterns that serve the code, not bureaucracy
+Explicit Over Implicit - Clear is better than clever
+Maintenance-Oriented - Code is written for future understanding, not just current functionality
+The philosophy remains: Build reliable, maintainable software through consistent, thoughtful patterns that scale from solo development to team projects.
