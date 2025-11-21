@@ -200,8 +200,8 @@ Raw Financial Data
 └─────────────────┘
 ```
 
-### Rating Categories
-default : 
+### Rating Strategies
+** default : 'balanced'
 1. **Valuation** (25%)
    - Forward P/E, PEG Ratio, P/S, P/B, P/FCF
    - Lower multiples = Better score
@@ -219,7 +219,7 @@ default :
    - Volatility (lower = better)
    - Better performance = Better score
 
-# but you can choose over different strategies : 
+**but you can choose over different strategies : 
 ```python
 STRATEGIES = {
     'balanced': {
