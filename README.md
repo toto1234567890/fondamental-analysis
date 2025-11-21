@@ -131,8 +131,9 @@ backup_types = data_factory.list_data_backup()       # ['csv', 'postgres', 'arct
 
 ### 3. Flexible Processing Pipeline
 Mix and match components to build custom workflows:
-
+```python
 # Example 1: Web scraping → Temp storage → Calculation → PostgreSQL
+
 scraper = FinvizScraper(config, logger)
 temp_saver = factory.create_data_saver("temp")
 calculator = AAACalculator(config, logger) 
@@ -146,13 +147,17 @@ calculator.run_complete_calculation(
     data_saver=postgres_saver, 
     backup_service=postgres_backup
 )
+```
 
+```python
 # Example 2: Direct CSV to ArcticDB processing  
 csv_source = factory.create_data_source("csv")
 arctic_saver = factory.create_data_saver("arctic")
 data = csv_source.get_data("input_data.csv")
 arctic_saver.save_data(data, "processed_data")
+```
 
+```python
 # Example 3: Multi-storage backup strategy
 savers = [
     factory.create_data_saver("csv"),
@@ -161,6 +166,7 @@ savers = [
 ]
 for saver in savers:
     saver.save_data(important_data, "backup_copy")
+```
 
 
 
