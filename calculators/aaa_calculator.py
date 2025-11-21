@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding:utf-8
 
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 import pandas as pd
 from datetime import datetime, timezone
 
@@ -10,6 +10,66 @@ from interfaces.calculator import ICalculator
 from interfaces.data_source import IDataSource
 from interfaces.data_saver import IDataSaver
 from interfaces.data_backup import IDataBackup
+
+
+#-----------------------------------------------------------------------------------------------
+## AAA calculation ponderation matching to common strategies
+STRATEGIES = {
+    'balanced': {
+        'name': 'Balanced',
+        'description': 'Equal emphasis across all categories',
+        'weights': {
+            'valuation': 0.25,
+            'profitability': 0.25,
+            'growth': 0.25,
+            'performance': 0.25
+        }
+    },
+    'value': {
+        'name': 'Value Investing', 
+        'description': 'Focus on valuation metrics',
+        'weights': {
+            'valuation': 0.50,
+            'profitability': 0.20,
+            'growth': 0.15,
+            'performance': 0.15
+        }
+    },
+    'growth': {
+        'name': 'Growth Investing',
+        'description': 'Focus on growth potential',
+        'weights': {
+            'valuation': 0.20,
+            'profitability': 0.25,
+            'growth': 0.40, 
+            'performance': 0.15
+        }
+    },
+    'quality': {
+        'name': 'Quality Investing',
+        'description': 'Focus on profitability and quality',
+        'weights': {
+            'valuation': 0.20,
+            'profitability': 0.45,
+            'growth': 0.20,
+            'performance': 0.15
+        }
+    },
+    'momentum': {
+        'name': 'Momentum Investing',
+        'description': 'Focus on recent performance',
+        'weights': {
+            'valuation': 0.15,
+            'profitability': 0.20,
+            'growth': 0.20,
+            'performance': 0.45
+        }
+    }
+}
+## AAA calculation ponderation matching to common strategies
+#-----------------------------------------------------------------------------------------------
+
+
 
 
 
@@ -21,16 +81,24 @@ class AAACalculator(ICalculator):
     #-----------------------------------------------------------------------------------------------
     def __init__(self, config: object, logger: object, name: Optional[str] = None):
         super().__init__(config, logger, name)
+        self.ponderation = None
     
     #-----------------------------------------------------------------------------------------------
     def run_complete_calculation(self, data_source: IDataSource, data_saver: IDataSaver, 
-                               data_backup: IDataBackup, sources: Optional[List[str]] = None) -> List[Any]:
+                               data_backup: IDataBackup, strategy: str = 'balanced', weighted_ratios: Dict = None, sources: Optional[List[str]] = None) -> List[Any]:
         """
         Run complete AAA calculation process with full control
         """
         errors = []
+
+        calcualation_strategy = STRATEGIES.get(strategy, "balanced")
+        self.ponderation = STRATEGIES.get(calcualation_strategy, "balanced").get('weights')
+
+        if weighted_ratios is not None: 
+            for ratio, ponderation in weighted_ratios.items():
+                self.ponderation[ratio] = float(ponderation)
         
-        self.logger.info("{0} : starting complete AAA calculation process".format(self.Name))
+        self.logger.info("{0} : starting complete AAA calculation process, with AAA calculation strategy : {1}".format(self.Name, calcualation_strategy))
         
         try:
             # Step 1: Calculate for sectors
@@ -218,11 +286,35 @@ class AAACalculator(ICalculator):
     #-----------------------------------------------------------------------------------------------
     def _make_aaa_calculation(self, df_tickers: pd.DataFrame) -> pd.DataFrame:
         """Perform complete AAA calculation"""
-        df_tickers = self._set_valuation_grade(df_tickers)
-        df_tickers = self._set_profitability_grade(df_tickers)
-        df_tickers = self._set_growth_grade(df_tickers)
-        df_tickers = self._set_performance_grade(df_tickers)
-        df_tickers = self._set_overall_rating(df_tickers)
+        df_tickers = self._set_valuation_grade(df_tickerdf_tickers=df_tickers,
+                                               fwd_pe_ponderation=self.ponderation.get('fwd_pe', 1),
+                                               peg_ponderation=self.ponderation.get('peg', 1),
+                                               ps_ponderation=self.ponderation.get('ps', 1),
+                                               pb_ponderation=self.ponderation.get('pb', 1),
+                                               pfcf_ponderation=self.ponderation.get('pfcf', 1))
+        df_tickers = self._set_profitability_grade(df_tickers=df_tickers,
+                                                   profit_margin_ponderation=self.ponderation.get('profit_margin', 1),
+                                                   operating_margin_ponderation=self.ponderation.get('operating_magin', 1),
+                                                   gross_margin_ponderation=self.ponderation.get('gross_margin', 1),
+                                                   roe_ponderation=self.ponderation.get('roe', 1),
+                                                   roa_ponderation=self.ponderation.get('roa', 1),)
+        df_tickers = self._set_growth_grade(df_tickers=df_tickers, 
+                                            eps_this_y_ponderation=self.ponderation.get('eps_this_y', 1),
+                                            eps_next_y_ponderation=self.ponderation.get('eps_next_y', 1),
+                                            eps_next_5y_ponderation=self.ponderation.get('eps_next_5y', 1),
+                                            sales_qq_ponderation=self.ponderation.get('sales_qq', 1),
+                                            eps_qq_ponderation=self.ponderation.get('eps_qq', 1))
+        df_tickers = self._set_performance_grade(df_tickers=df_tickers, 
+                                                 perf_month_ponderation=self.ponderation.get('perf_month', 1),
+                                                 perf_quarter_ponderation=self.ponderation.get('perf_quarter', 1),
+                                                 perf_half_year_ponderation=self.ponderation.get('perf_half_year', 1),
+                                                 perf_year_ponderation=self.ponderation.get('perf_year', 1),
+                                                 perf_ytd_ponderation=self.ponderation.get('perf_ytd', 1))
+        df_tickers = self._set_overall_rating(df_tickers=df_tickers, 
+                                              val_grade_ponderation=self.ponderation['valuation'],
+                                              prof_grade_ponderation=self.ponderation['profitability'],
+                                              grow_grade_ponderation=self.ponderation['growth'],
+                                              perf_grade_ponderation=self.ponderation['performance'])
         return df_tickers
     
     #-----------------------------------------------------------------------------------------------
