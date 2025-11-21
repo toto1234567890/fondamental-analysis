@@ -25,7 +25,7 @@ The framework follows a clean interface-based architecture with four main compon
 
 ### Core Configuration Module
 
-The configuration system that handles both development and production environments:
+The configuration that handles both development and production environments, use config in except block:
 
 ```python
 #!/usr/bin/env python
@@ -51,7 +51,7 @@ def get_config_logger(name, config=None):
         
         class Config:
             # Database
-            DB_SERVER = "localhost"
+            DB_SERVER = "localhost" # For Postgres server
             DB_NAME = "my_project"
             DB_USER = "postgres"
             DB_PASSWORD = "password"
@@ -62,7 +62,7 @@ def get_config_logger(name, config=None):
             FS_TEMP = "./temp"      # For temporary files
             
             # ArcticDB
-            ARCTIC_HOST = "localhost"
+            ARCTIC_HOST = "localhost" # For ArcticDB server
             ARCTIC_LIBRARY = "my_project_data"
 
         logger = logging.getLogger()
