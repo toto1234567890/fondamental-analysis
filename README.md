@@ -67,7 +67,7 @@ def get_config_logger(name, config=None):
 
         logger = logging.getLogger()
         config = Config()
-    return config, logger
+    return config, logger```
 
 ## 🎯 Key Features
 
