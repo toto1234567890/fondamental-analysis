@@ -1,0 +1,192 @@
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                          DATA FLOW DIAGRAM                                          │
+└─────────────────────────────────┬───────────────────────────────────────────────────┘
+                                  │                       
+                        ┌─────────▼─────────┐ 
+                        │     SCRAPER       │ 
+                        │   (Optional)      │ 
+                        │                   │ 
+                        │ ┌───────────────┐ │ 
+                        │ │ FinvizScraper │ │ 
+                        │ │ CustomScraper │ │ 
+                        │ │   None        │ │ 
+                        │ └───────────────┘ │ 
+                        └─────────┬─────────┘ 
+                                  │            
+                            ┌─────▼──────┐ 
+                            │ TEMP DATA  │ 
+                            │ SAVER      │ 
+                            │ (Required) │ 
+                            │┌──────────┐│ 
+                            ││PostgreSQL││ 
+                            ││ ArcticDB ││ 
+                            ││   CSV    ││ 
+                            │└──────────┘│ 
+                            └─────┬──────┘
+                                  │   
+                           ┌──────▼────────┐
+                           │ CALCULATOR    │
+                           │  (Pluggable). │
+                           │               │
+                           │┌────────────┐ │
+                           ││AAACalculator │
+                           ││ML_Calculator │
+                           ││Custom_Score  │
+                           │└────────────┘ │
+                           └─────┬─────────┘
+                                 │                           
+    ┌─▼─────────────────▼──────────────▼─┐ ┌────▼─────┐
+    │             DATA SAVER             │ │  BACKUP  │
+    │           (Required)               │ │ SERVICE  │
+    │                                    │ │(Required)│
+    │┌──────────────────────────────────┐│ │┌────────┐│
+    ││      save_data()                 ││ ││PostgreSQL│
+    ││      save_with_backup()          ││ ││ArcticDB │
+    │└──────────────────────────────────┘│ │└────────┘│
+    └─────────────────┬──────────────────┘ └──────────┘
+                                   │
+                         ┌─────────▼─────────┐
+                         │    FINAL DATA     │
+                         │                   │
+                         │┌─────────────────┐│
+                         ││ AAA_* Tables    ││
+                         ││ arcticDB Data   ││
+                         ││ Backup dData    ││
+                         │└─────────────────┘│
+                         └───────────────────┘
+
+
+
+
+
+
+                        DETAILED DATA FLOW SEQUENCE
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│    SCRAPER      │    │   DATA SOURCE   │    │   CALCULATOR    │    │    DATA SAVER   │
+│   (Optional)    │    │   (Required)    │    │  (Pluggable)    │    │   (Required)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ 1. scrape_data()│    │ 2. get_data()   │    │ 3. run_complete_│    │ 4. save_data()  │
+│    - Web req    │───▶│    - Read from  │───▶│   calculation() │───▶│    - Write to   │
+│    - Parse HTML │    │      storage    │    │    - Transform  │    │      storage    │
+│    - Extract    │    │    - Query DB   │    │    - Calculate  │    │    - Atomic     │
+│    tables       │    │    - Load files │    │    - Grade      │    │      swap      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ Raw HTML Data   │    │ Structured      │    │ Processed       │    │ Final AAA       │
+│ from Finviz     │    │ DataFrame       │    │ Ratings &       │    │ Tables with     │
+│                 │    │ with stock      │    │ Grades (A+ to F)│    │ permissions     │
+└─────────────────┘    │ metrics         │    │                 │    │ preserved       │
+                       └─────────────────┘    └─────────────────┘    └─────────────────┘
+
+
+
+
+
+                      AAA CALCULATOR INTERNAL DATA TRANSFORMATION
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   RAW METRICS   │    │  SCALED SCORES  │    │ COMPOSITE SCORES│    │  FINAL GRADES   │
+│                 │    │   (0-10 range)  │    │   (0-10 range)  │    │   (A+ to F)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ - Fwd P/E       │    │ - score - fwd p/e│   │ - score - valuation ││ - AAA - valuation │
+│ - PEG ratio     │───▶│ - score - peg   │───▶│ - score - profitability│───▶│ - AAA - profitability│
+│ - P/S ratio     │    │ - score - p/s   │    │ - score - growth   │    │ - AAA - growth    │
+│ - ROE, ROA      │    │ - score - roe   │    │ - score - performance│    │ - AAA - performance │
+│ - EPS growth    │    │ - score - eps...│    │ - score - overall  │    │ - AAA - overall   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+
+
+
+
+
+
+                      BACKUP SERVICE DATA PROTECTION FLOW
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  LIVE TABLES    │    │  TEMP BACKUP    │    │  SWAP OPERATION │    │  FINAL BACKUP   │
+│                 │    │   CREATION      │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ AAA_sector      │    │ Create temp_    │    │ Atomic table   │    │ AAA_sector      │
+│ AAA_index       │───▶│ backup table    │───▶│ swap preserving │───▶│_backup with     │
+│ AAA_all         │    │ with same       │    │ permissions    │    │ weekly ranking  │
+│                 │    │ structure       │    │                │    │ & history       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+
+
+
+
+
+
+                    COMPLETE EXECUTION PIPELINE WITH ERROR HANDLING
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   INITIALIZE    │    │   HEALTH CHECK  │    │   SCRAPE DATA   │    │  RUN CALCULATOR │
+│                 │    │                 │    │   (Optional)    │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ - Create        │    │ - Verify DB     │    │ - For each      │    │ - Calculator    │
+│   factories     │───▶│   connections   │───▶│   sector/index  │───▶│   controls      │
+│ - Instantiate   │    │ - Check file    │    │ - Scrape web    │    │   entire flow   │
+│   components    │    │   permissions   │    │   data          │    │ - Get data from │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                                              │
+         ┌───────────────────────────────────────────────────────────────────┘
+         │
+┌────────▼────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   SAVE RESULTS  │    │   CREATE BACKUP │    │   ERROR HANDLE  │    │    FINAL LOG    │
+│                 │    │                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ - Atomic table  │    │ - Weekly backup │    │ - Continue on   │    │ - Success/error │
+│   swap to       │───▶│   with ranking  │───▶│   sector errors │───▶│   summary      │
+│   preserve      │    │ - Historical    │    │ - Critical fail │    │ - Performance   │
+│   permissions   │    │   data kept     │    │   only on DB    │    │   metrics      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+
+
+
+
+
+
+
+                    DATA STORAGE EVOLUTION THROUGH PIPELINE
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   RAW SCRAPED   │    │   PROCESSED     │    │    RATED AAA    │    │   BACKED UP     │
+│      DATA       │    │     DATA        │    │      DATA       │    │     DATA        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                      │                      │                      │
+┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐    ┌────────▼────────┐
+│ raw_* tables:   │    │ AAA_* tables:   │    │ AAA_* tables:   │    │ AAA_*_backup:  │
+│ - Ticker        │───▶│ - Ticker        │───▶│ - Ticker        │───▶│ - Ticker        │
+│ - Company       │    │ - Company       │    │ - Company       │    │ - Company       │
+│ - Sector        │    │ - Sector        │    │ - Sector        │    │ - Sector        │
+│ - Fwd P/E       │    │ - Fwd P/E       │    │ - score - fwd p/e│   │ - score - fwd p/e│
+│ - PEG ratio     │    │ - PEG ratio     │    │ - AAA - valuation │   │ - AAA - valuation │
+│ - Market Cap    │    │ - Market Cap    │    │ - score - overall│   │ - score - overall│
+│ - Date          │    │ - Date          │    │ - AAA - overall │   │ - AAA - overall │
+│                 │    │                 │    │ - Date          │    │ - Date          │
+│                 │    │                 │    │                 │    │ - Week/Year     │
+│                 │    │                 │    │                 │    │ - Rank          │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+
+
+
+
+
+                    ERROR HANDLING STRATEGY BY COMPONENT
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│    SCRAPER      │   DATA SOURCE   │   CALCULATOR    │    DATA SAVER   │   BACKUP SERVICE │
+├─────────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┤
+│ Continue on     │ Retry connection│ Fallback to     │ Atomic rollback │ Alert but       │
+│ sector failure  │ 3 times         │ default values  │ on failure      │ continue        │
+│ Log and skip    │ Return empty DF │ Log error &     │ Preserve old    │ Incremental     │
+│ failed sources  │ on final fail   │ return original │ data on error   │ backup only     │
+│ Use proxy       │ Cache last good │ data            │ Use temp tables │ failed tables   │
+│ rotation        │ data if available│                 │ for safety      │                 │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┘
