@@ -85,32 +85,33 @@ class AAACalculator(ICalculator):
     
     #-----------------------------------------------------------------------------------------------
     def run_complete_calculation(self, data_source: IDataSource, data_saver: IDataSaver, 
-                               data_backup: IDataBackup, strategy: str = 'balanced', weighted_ratios: Dict = None, sources: Optional[List[str]] = None) -> List[Any]:
+                               data_backup: IDataBackup, strategy: str = 'balanced', 
+                               weighted_ratios: Dict = None, sources: Optional[List[str]] = None) -> List[Any]:
         """
         Run complete AAA calculation process with full control
         """
         errors = []
 
-        calcualation_strategy = STRATEGIES.get(strategy, "balanced")
-        self.ponderation = calcualation_strategy.get('weights')
+        calculation_strategy = STRATEGIES.get(strategy, "balanced")
+        self.ponderation = calculation_strategy.get('weights')
 
         if weighted_ratios is not None: 
             for ratio, ponderation in weighted_ratios.items():
                 self.ponderation[ratio] = float(ponderation)
         
-        self.logger.info("{0} : starting complete AAA calculation process, with AAA calculation strategy : {1}".format(self.Name, calcualation_strategy))
+        self.logger.info("{0} : starting complete AAA calculation process, with AAA calculation strategy : {1}".format(self.Name, calculation_strategy))
         
         try:
             # Step 1: Calculate for sectors
-            sector_errors = self._calculate_for_sectors(data_source, data_saver, data_backup, sources)
+            sector_errors = self._calculate_for_sectors(data_source, data_saver, data_backup, strategy, sources)
             errors.extend([f"Sector error: {err}" for err in sector_errors])
             
             # Step 2: Calculate for indexes
-            index_errors = self._calculate_for_indexes(data_source, data_saver, data_backup)
+            index_errors = self._calculate_for_indexes(data_source, data_saver, strategy, data_backup)
             errors.extend([f"Index error: {err}" for err in index_errors])
             
             # Step 3: Calculate for all data
-            all_success = self._calculate_for_all(data_source, data_saver, data_backup)
+            all_success = self._calculate_for_all(data_source, data_saver, strategy, data_backup)
             if not all_success:
                 errors.append("All data calculation failed")
             
@@ -151,7 +152,7 @@ class AAACalculator(ICalculator):
     
     #-----------------------------------------------------------------------------------------------
     def _calculate_for_sectors(self, data_source: IDataSource, data_saver: IDataSaver, 
-                             data_backup: IDataBackup, sectors: Optional[List[str]] = None) -> List[str]:
+                             data_backup: IDataBackup, strategy: str, sectors: Optional[List[str]] = None) -> List[str]:
         """Calculate AAA ratings for multiple sectors"""
         errors = []
         
@@ -160,7 +161,7 @@ class AAACalculator(ICalculator):
         
         for sector in sectors:
             source = f"AAA - {sector}.csv"
-            destination = f"AAA_{sector}"
+            destination = f"{strategy}_{sector}"
             
             success = self._calculate_and_save(data_source, data_saver, data_backup, source, destination)
             if not success:
@@ -172,7 +173,7 @@ class AAACalculator(ICalculator):
         return errors
     
     #-----------------------------------------------------------------------------------------------
-    def _calculate_for_indexes(self, data_source: IDataSource, data_saver: IDataSaver, 
+    def _calculate_for_indexes(self, data_source: IDataSource, data_saver: IDataSaver, strategy: str, 
                              data_backup: IDataBackup) -> List[str]:
         """Calculate AAA ratings for indexes"""
         errors = []
@@ -180,7 +181,7 @@ class AAACalculator(ICalculator):
         
         for index in indexes:
             source = f"AAA - {index}.csv"
-            destination = f"AAA_{index}"
+            destination = f"{strategy}_{index}"
             
             success = self._calculate_and_save(data_source, data_saver, data_backup, source, destination)
             if not success:
@@ -192,11 +193,11 @@ class AAACalculator(ICalculator):
         return errors
     
     #-----------------------------------------------------------------------------------------------
-    def _calculate_for_all(self, data_source: IDataSource, data_saver: IDataSaver, 
+    def _calculate_for_all(self, data_source: IDataSource, data_saver: IDataSaver, strategy: str,
                          data_backup: IDataBackup) -> bool:
         """Calculate AAA ratings for all data"""
         source = "AAA - all.csv"
-        destination = "AAA_all"
+        destination = f"{strategy}_all"
         
         success = self._calculate_and_save(data_source, data_saver, data_backup, source, destination)
         if success:
@@ -276,7 +277,8 @@ class AAACalculator(ICalculator):
                     )
         
         # Convert scores to grades
-        for column in df_tickers_sector.columns:
+        score_columns = ["score - valuation", "score - profitability", "score - growth", "score - performance", "score - overall"]
+        for column in score_columns:
             if column.startswith("score - "):
                 grade_col = f"AAA - {column.replace('score - ', '').lower()}"
                 df_tickers_sector[grade_col] = df_tickers_sector[column].apply(self._convert_to_grade)
