@@ -28,6 +28,7 @@ The framework follows a clean interface-based architecture with four main compon
 ## ⚙️ Configuration & Setup
 
 I struggle with github web interface and don't want to use github for the moment, for info this is the correct folder hierachy :<br>
+```
 ├── src/
 │   ├── calculators/
 │   ├── data_backups/
@@ -40,6 +41,7 @@ I struggle with github web interface and don't want to use github for the moment
 ├── tools/
 ├── config/
 └── doc/
+```
 
 ### Core Configuration Module
 
