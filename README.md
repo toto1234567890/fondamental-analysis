@@ -237,7 +237,7 @@ Raw Financial Data
    - Volatility (lower = better)
    - Better performance = Better score
 
-**but you can choose over different strategies : 
+**but you can choose over different strategies or made your own (see weighted_metrics in config folder): 
 ```python
 STRATEGIES = {
     'balanced': {
@@ -323,6 +323,4 @@ STRATEGIES = {
 }
 ```
 This provides a quick, standardized way to compare investment opportunities across different sectors and market caps.
-
-You can also pass a custom configuration for all metrics, see config folder.
 
