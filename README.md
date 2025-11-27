@@ -308,8 +308,8 @@ STRATEGIES = {
     <u>D+ ≥ 2.31</u>  
     <u>D ≥ 1.54</u>  
     <u>D- ≥ 0.77</u>  
-    <u>F < 0.77</u>```
-
+    <u>F < 0.77</u>
+```
 
 ### Example Output
 ```python
