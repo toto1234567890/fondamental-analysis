@@ -305,3 +305,5 @@ STRATEGIES = {
 ```
 This provides a quick, standardized way to compare investment opportunities across different sectors and market caps.
 
+You can also pass a custom configuration for all metrics, see config folder.
+
