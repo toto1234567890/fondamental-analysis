@@ -1,0 +1,42 @@
+{
+  "strategy": "weighted_metrics",
+  "weight": {
+    "valuation": 0.30,
+    "profitability": 0.30,
+    "growth": 0.20,
+    "performance": 0.20,
+    
+    "valuation_metrics": {
+      "fwd_pe": 1.0,
+      "peg": 1.1,
+      "ps": 1.0,
+      "pb": 0.9,
+      "pfcf": 1.1
+    },
+    
+    "profitability_metrics": {
+      "profit_margin": 1.0,
+      "operating_margin": 1.1,
+      "gross_margin": 0.9,
+      "roe": 1.0,
+      "roa": 1.0
+    },
+    
+    "growth_metrics": {
+      "eps_this_y": 1.0,
+      "eps_next_y": 1.0,
+      "eps_next_5y": 0.9,
+      "sales_qq": 1.1,
+      "eps_qq": 1.0
+    },
+    
+    "performance_metrics": {
+      "perf_month": 1.2,
+      "perf_quarter": 1.1,
+      "perf_half_year": 1.0,
+      "perf_year": 0.9,
+      "perf_ytd": 0.8,
+      "volatility": 1.0
+    }
+  }
+}
