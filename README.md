@@ -27,6 +27,20 @@ The framework follows a clean interface-based architecture with four main compon
 
 ## ⚙️ Configuration & Setup
 
+I struggle with github web interface and don't want to use github for the moment, for info this is the correct folder hierachy :
+/src
+    /calculators
+    /data_backups
+    /data_savers
+    /data_source
+    /factories
+    /helpers
+    /interfaces
+    /scrapers
+/tools
+/config
+/doc
+
 ### Core Configuration Module
 
 The configuration that handles both development and production environments, use config in except block:
